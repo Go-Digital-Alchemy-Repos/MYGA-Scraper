@@ -1,0 +1,7 @@
+/output
+/__pycache__
+/venv
+
+venv/
+output/
+__pycache__/

@@ -1,0 +1,32 @@
+[
+  {
+    "Company_Product_Name": "GCUOne Plus Four",
+    "AM_Best": "A-",
+    "Max_Issue_Age": "Any Age",
+    "Min_Premium": "300",
+    "SC_Years": "5 yrs",
+    "Free_Withdrawal_Yr1_Yr2": "0% / 10%",
+    "Last_Change": "06/01/2025",
+    "Premium_Bonus": "",
+    "Current_Rate": "4.15",
+    "Base_Rate": "4.15",
+    "Years": "1 yr",
+    "GTD_Yield_Rate": "4.15",
+    "Commission": ""
+  },
+  {
+    "Company_Product_Name": "ELCO Mutual Life & AnnuityGuardian Eagle 1 Year",
+    "AM_Best": "B++",
+    "Max_Issue_Age": "90",
+    "Min_Premium": "20,000",
+    "SC_Years": "1 yr",
+    "Free_Withdrawal_Yr1_Yr2": "Int / 15%",
+    "Last_Change": "06/09/2025",
+    "Premium_Bonus": "",
+    "Current_Rate": "4.00",
+    "Base_Rate": "4.00",
+    "Years": "1 yr",
+    "GTD_Yield_Rate": "4.00",
+    "Commission": "18-UP: 0.75+See Notes"
+  }
+]

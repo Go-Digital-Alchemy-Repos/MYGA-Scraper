@@ -12,6 +12,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import json
+import csv
 import time
 import re
 from typing import List, Dict
@@ -530,6 +531,59 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
         except Exception as e:
             print(f"❌ Error saving to JSON: {str(e)}")
 
+    def save_to_csv(self, data: List[Dict], filename: str = None):
+        """Save data to CSV file in output folder with proper column order"""
+        if not data:
+            print("⚠️ No data to save to CSV")
+            return
+            
+        if filename is None:
+            filename = f"output/complete_annuity_data_{int(time.time())}.csv"
+        else:
+            filename = f"output/{filename}"
+        
+        try:
+            # Define the preferred column order based on the table structure
+            preferred_order = [
+                'Carrier_Product_Name',
+                'AM_Best',
+                'Max_Issue_Age', 
+                'Min_Premium',
+                'SC_Years',
+                'Free_Withdrawal_Yr1_Yr2',
+                'Last_Change',
+                'Premium_Bonus',
+                'Current_Rate',
+                'Base_Rate',
+                'Years_Rate_GTD',
+                'GTD_Yield_Surrender',
+                'Commission'
+            ]
+            
+            # Get all unique column names from the data
+            all_columns = set()
+            for row in data:
+                all_columns.update(row.keys())
+            
+            # Start with preferred order, then add any additional columns
+            columns = []
+            for col in preferred_order:
+                if col in all_columns:
+                    columns.append(col)
+                    all_columns.remove(col)
+            
+            # Add any remaining columns (sorted alphabetically)
+            columns.extend(sorted(list(all_columns)))
+            
+            with open(filename, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=columns)
+                writer.writeheader()
+                writer.writerows(data)
+            
+            print(f"💾 Data saved to {filename} with {len(columns)} columns")
+        except Exception as e:
+            print(f"❌ Error saving to CSV: {str(e)}")
+
     def close(self):
         """Close the browser"""
         if self.driver:
@@ -569,7 +623,10 @@ def main():
     
     if data:
         print(f"\n✅ Scraping completed! Total rows extracted: {len(data)}")
+        
+        # Save in both formats
         scraper.save_to_json(data)
+        scraper.save_to_csv(data)
         
         # Show sample
         if len(data) > 0:

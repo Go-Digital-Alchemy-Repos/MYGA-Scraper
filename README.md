@@ -12,7 +12,7 @@ This scraper uses Selenium WebDriver to handle the complex authentication and Ja
 - **Robust Authentication**: Handles complex login forms with CSRF tokens
 - **Complete Pagination**: Automatic traversal of all data pages (1-36)
 - **Smart Table Detection**: Targets main data tables while avoiding navigation elements
-- **Structured JSON Export**: Clean, organized output with metadata
+- **Dual Format Export**: Saves data in both JSON and CSV formats
 - **Error Recovery**: Robust handling of network issues and timeouts
 - **Debug Support**: Screenshots and HTML dumps for troubleshooting
 - **Organized Output**: All results saved to `output/` directory
@@ -44,17 +44,20 @@ This will:
 1. Prompt for username/password securely
 2. Login to the AnnuityRateWatch website
 3. Scrape all pages (1-36) with ~1,793 total records
-4. Save results to `output/annuity_data_[timestamp].json`
+4. Save results to both `output/annuity_data_[timestamp].json` and `output/annuity_data_[timestamp].csv`
 5. Generate debug files if issues occur
 
 ### Programmatic Usage
 
 ```python
-from paginated_selenium_scraper import PaginatedAnnuityScraper
+from paginated_selenium_scraper import PaginatedSeleniumAnnuityRateWatchScraper
 
-scraper = PaginatedAnnuityScraper("username", "password")
-data = scraper.scrape_all_pages()
-scraper.save_to_json(data, "output/my_data.json")
+scraper = PaginatedSeleniumAnnuityRateWatchScraper("username", "password")
+data = scraper.run()
+
+# Save in both formats
+scraper.save_to_json(data, "my_data.json")
+scraper.save_to_csv(data, "my_data.csv")
 ```
 
 ## Data Structure
@@ -89,7 +92,8 @@ MYGA/
 ├── requirements.txt              # Python dependencies
 ├── README.md                     # This file
 └── output/                       # All results and debug files
-    ├── annuity_data_*.json       # Scraped data
+    ├── annuity_data_*.json       # Scraped data (JSON format)
+    ├── annuity_data_*.csv        # Scraped data (CSV format)
     ├── debug_*.html              # Page source dumps
     └── screenshots/              # Debug screenshots
 ```

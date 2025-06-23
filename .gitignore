@@ -2,6 +2,6 @@
 /__pycache__
 /venv
 
-venv/
-output/
-__pycache__/
+venv
+output
+__pycache__

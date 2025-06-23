@@ -254,7 +254,11 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
                 
                 for col_idx, cell in enumerate(cells):
                     header = headers[col_idx] if col_idx < len(headers) else f"Column_{col_idx + 1}"
-                    cell_text = cell.get_text(strip=True)
+                    # Preserve newlines for company/product name separation, strip for others
+                    if col_idx == 1:  # Column_2 is the company/product name (index 1)
+                        cell_text = cell.get_text(separator='\n').strip()
+                    else:
+                        cell_text = cell.get_text(strip=True)
                     row_data[header] = cell_text
                     
                     # Capture links
@@ -321,6 +325,16 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
                         value = value.replace('\n/\n', ' / ')
                         value = value.replace('\n/', ' /')
                         value = value.replace('/\n', '/ ')
+                        
+                        # Special handling for company/product names - replace newlines with dash
+                        if new_key == 'Company_Product_Name':
+                            # Replace newlines, tabs, and multiple spaces with single space
+                            import re
+                            value = re.sub(r'[\n\r\t]+', ' - ', value)
+                            # Clean up multiple spaces and dashes
+                            value = re.sub(r'\s+', ' ', value)
+                            value = re.sub(r'\s*-\s*-\s*', ' - ', value)
+                            value = value.strip()
                     
                     mapped_row[new_key] = value
                 
@@ -543,21 +557,21 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
             filename = f"output/{filename}"
         
         try:
-            # Define the preferred column order based on the table structure
+            # Define the preferred column order based on the actual column names in the data
             preferred_order = [
-                'Carrier_Product_Name',
-                'AM_Best',
-                'Max_Issue_Age', 
-                'Min_Premium',
-                'SC_Years',
-                'Free_Withdrawal_Yr1_Yr2',
-                'Last_Change',
-                'Premium_Bonus',
-                'Current_Rate',
-                'Base_Rate',
-                'Years_Rate_GTD',
-                'GTD_Yield_Surrender',
-                'Commission'
+                'Company_Product_Name',  # Carrier/Product Name
+                'AM_Best',               # AM Best
+                'Max_Issue_Age',         # Max Issue Age
+                'Min_Premium',           # Min Premium
+                'SC_Years',              # SC Years
+                'Free_Withdrawal_Yr1_Yr2', # Free Withdrawal Yr1/Yr2+
+                'Last_Change',           # Last Change
+                'Premium_Bonus',         # Premium Bonus
+                'Current_Rate',          # Current Rate
+                'Base_Rate',             # Base Rate
+                'Years',                 # Years Rate GTD
+                'GTD_Yield_Rate',        # GTD Yield/Surrender
+                'Commission'             # Commission
             ]
             
             # Get all unique column names from the data

@@ -424,8 +424,8 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
             if not self.wait_for_tables():
                 print("⚠️ Tables didn't load as expected, but continuing...")
             
-            # Give it time for dynamic content
-            time.sleep(2)
+            # Fixed wait per page to ensure full table renders before extraction
+            time.sleep(5)
             
             # Extract data
             data = self.extract_table_data(page_num)
@@ -438,20 +438,47 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
             return []
 
     def scrape_all_pages(self, max_pages: int = None) -> List[Dict]:
-        """Scrape all pages with intelligent end detection"""
-        all_data = []
+        """Scrape all pages.
+
+        Strategy:
+        1. Read pagination footer ("Page X of Y | Showing … out of Z Records") on
+           the very first load to get the authoritative page count.
+        2. Iterate page-by-page up to that number (or ``max_pages`` override).
+        3. Still keep the existing duplicate/empty-page heuristics as a safety
+           net—if the site suddenly changes and we reach the end earlier, we’ll
+           stop without wasting time.
+        """
+
+        all_data: List[Dict] = []
         page_num = 1
         consecutive_empty_pages = 0
         last_page_data_signature = None
-        
-        print(f"🚀 Starting to scrape pages with intelligent end detection...")
-        if max_pages:
-            print(f"📊 Maximum pages limit: {max_pages}")
+
+        detected_pages = None  # Will detect after first real page load
+
+        # Respect max_pages parameter later once detected
+
+        print("🚀 Starting to scrape pages…")
         
         while True:
             try:
+                # Stop if we have already scraped all reported pages
+                if detected_pages and page_num >= detected_pages:
+                    print(f"📄 Reached reported total pages ({detected_pages}) – stopping.")
+                    break
                 print(f"🔄 Scraping page {page_num}...")
                 page_data = self.scrape_page(page_num)
+
+                # After first successful page, detect total pages if not already known
+                if detected_pages is None and page_data:
+                    detected_pages = self.get_total_pages()
+                    if detected_pages:
+                        print(f"📄 Pagination footer reports {detected_pages} pages total")
+                        if max_pages:
+                            detected_pages = min(detected_pages, max_pages)
+                            print(f"📊 Limiting to {detected_pages} pages due to max_pages={max_pages}")
+                    else:
+                        print("⚠️ Pagination footer not found – will rely on heuristics")
                 
                 if page_data:
                     # Create a signature of this page's data for duplicate detection

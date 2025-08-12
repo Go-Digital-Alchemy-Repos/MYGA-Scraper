@@ -412,30 +412,53 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
             
         return False
 
-    def scrape_page(self, page_num: int) -> List[Dict]:
-        """Scrape a specific page number"""
-        try:
-            url = f"{self.base_url}?pageNo={page_num}"
-            print(f"🔄 Scraping page {page_num}: {url}")
-            
-            self.driver.get(url)
-            
-            # Wait for content to load
-            if not self.wait_for_tables():
-                print("⚠️ Tables didn't load as expected, but continuing...")
-            
-            # Fixed wait per page to ensure full table renders before extraction
-            time.sleep(5)
-            
-            # Extract data
-            data = self.extract_table_data(page_num)
-            print(f"📊 Extracted {len(data)} rows from page {page_num}")
-            
-            return data
-            
-        except Exception as e:
-            print(f"❌ Error scraping page {page_num}: {str(e)}")
-            return []
+    def scrape_page(self, page_num: int, max_retries: int = 2) -> List[Dict]:
+        """Scrape a page, retrying if the main data table isn’t found.
+
+        The site sometimes returns a stub page with only small layout tables.
+        To improve reliability we reload the same URL a few times until we
+        successfully extract rows or the retry limit is reached.
+        """
+
+        attempts = 0
+        while attempts <= max_retries:
+            try:
+                if attempts:
+                    print(f"🔄 Retry {attempts}/{max_retries} for page {page_num}…")
+
+                url = f"{self.base_url}?pageNo={page_num}"
+                print(f"🔄 Scraping page {page_num}: {url}")
+
+                self.driver.get(url)
+
+                # Wait for content to load
+                if not self.wait_for_tables():
+                    print("⚠️ Tables didn't load as expected, continuing anyway…")
+
+                # Give JS a moment to render
+                time.sleep(2)
+
+                # Extract data
+                data = self.extract_table_data(page_num)
+                print(f"📊 Extracted {len(data)} rows from page {page_num}")
+
+                if data:
+                    return data  # Success
+
+                # If no data extracted, prepare to retry
+                attempts += 1
+                if attempts <= max_retries:
+                    print("⚠️ No data found; retrying after short wait…")
+                    time.sleep(3)
+            except Exception as e:
+                print(f"❌ Error scraping page {page_num} (attempt {attempts + 1}): {str(e)}")
+                attempts += 1
+                if attempts <= max_retries:
+                    print("⚠️ Retrying due to error…")
+                    time.sleep(3)
+
+        print(f"🛑 Failed to scrape page {page_num} after {max_retries} retries.")
+        return []
 
     def scrape_all_pages(self, max_pages: int = None) -> List[Dict]:
         """Scrape all pages.
@@ -463,7 +486,8 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
         while True:
             try:
                 # Stop if we have already scraped all reported pages
-                if detected_pages and page_num >= detected_pages:
+                # Allow scraping up to and including detected_pages
+                if detected_pages and page_num > detected_pages:
                     print(f"📄 Reached reported total pages ({detected_pages}) – stopping.")
                     break
                 print(f"🔄 Scraping page {page_num}...")

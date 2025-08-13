@@ -458,7 +458,8 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
                     time.sleep(3)
 
         print(f"🛑 Failed to scrape page {page_num} after {max_retries} retries.")
-        return []
+        # Raise an error so the caller knows the run is incomplete
+        raise RuntimeError(f"Failed to scrape page {page_num} after {max_retries} retries.")
 
     def scrape_all_pages(self, max_pages: int = None) -> List[Dict]:
         """Scrape all pages.
@@ -538,16 +539,9 @@ class PaginatedSeleniumAnnuityRateWatchScraper:
                 page_num += 1
                 
             except Exception as e:
-                print(f"❌ Error on page {page_num}: {str(e)}")
-                consecutive_empty_pages += 1
-                
-                # If we get too many errors, probably reached the end
-                if consecutive_empty_pages >= 3:
-                    print(f"🛑 Too many consecutive errors - likely reached end!")
-                    break
-                    
-                page_num += 1
-                continue
+                # Bubble up any error so that the calling code can decide what to do.
+                print(f"❌ Fatal error on page {page_num}: {e}")
+                raise
         
         print(f"\n📊 Completed scraping {page_num-1} pages")
         

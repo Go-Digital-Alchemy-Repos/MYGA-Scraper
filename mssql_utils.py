@@ -57,14 +57,19 @@ def _infer_column_types(data: List[Dict], columns: Sequence[str]) -> Dict[str, s
 def _convert(value, col_type: str):
     if value in (None, "", "-", "N/A"):
         return None
-    try:
-        if col_type == "INT":
+    # Handle numeric conversions when the column was inferred/overridden as numeric
+    if col_type == "INT":
+        try:
             return int(str(value).replace(",", ""))
-        if col_type.startswith("DECIMAL"):
+        except Exception:
+            return None
+    if col_type.startswith("DECIMAL"):
+        try:
             return float(str(value).replace(",", ""))
-    except Exception:
-        return None
-    return None
+        except Exception:
+            return None
+    # For NVARCHAR(MAX) or any other non-numeric type keep the original value
+    return value
 
 
 def save_annuity_data_to_mssql(

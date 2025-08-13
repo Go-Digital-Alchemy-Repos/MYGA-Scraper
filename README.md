@@ -12,16 +12,22 @@ This scraper uses Selenium WebDriver to handle the complex authentication and Ja
 - **Robust Authentication**: Handles complex login forms with CSRF tokens
 - **Complete Pagination**: Automatic traversal of all data pages (1-36)
 - **Smart Table Detection**: Targets main data tables while avoiding navigation elements
-- **Dual Format Export**: Saves data in both JSON and CSV formats
+- **Database Persistence**: Push data directly into **MySQL** *or* **Microsoft SQL Server**
+- **Dual Format Export**: Saves data in JSON and CSV as backups
 - **Error Recovery**: Robust handling of network issues and timeouts
 - **Debug Support**: Screenshots and HTML dumps for troubleshooting
 - **Organized Output**: All results saved to `output/` directory
 
 ## Requirements
 
-- Python 3.7+
-- Chrome browser (for Selenium)
-- Valid AnnuityRateWatch account credentials
+| Component | Purpose |
+|-----------|---------|
+| Python 3.9+ | scraper & utils |
+| Chrome browser | required for Selenium headless mode |
+| Valid AnnuityRateWatch account | login |
+| **MySQL** *or* **SQL Server (Docker or native)** | optional – to persist data |
+| MySQL driver: `mysql-connector-python` | auto-installed by `requirements.txt` |
+| SQL Server driver: **ODBC Driver 18** + `pyodbc` | see below |
 
 ## Installation
 
@@ -30,22 +36,64 @@ This scraper uses Selenium WebDriver to handle the complex authentication and Ja
 pip install -r requirements.txt
 ```
 
-2. Ensure Chrome browser is installed (ChromeDriver will be automatically managed)
+2. If you plan to save into SQL Server, install Microsoft’s ODBC driver (one-time):
+
+macOS (Homebrew)
+
+```bash
+brew tap microsoft/mssql-release
+ACCEPT_EULA=Y brew install msodbcsql18    # ODBC Driver 18
+```
+
+Ubuntu
+
+```bash
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
+  | sudo tee /etc/apt/sources.list.d/mssql-release.list
+sudo apt update
+sudo ACCEPT_EULA=Y apt install msodbcsql18
+```
+
+Skip this step if you only use MySQL.
 
 ## Usage
 
-### Command Line
+### Quick Scrape & Load (recommended)
+
+`scrape_and_load.py` combines scraping with database persistence. First export environment variables, then run:
+
+```bash
+# choose backend (mysql|mssql) – default is mysql
+export DB_TYPE=mssql
+
+# Credentials (examples)
+export ARW_USERNAME="your_arw_user"
+export ARW_PASSWORD="your_arw_pass"
+
+# SQL Server
+export MSSQL_USER=sa
+export MSSQL_PASSWORD=TestPass123!
+
+python scrape_and_load.py
+```
+
+The script will:
+1. Login and scrape all pages
+2. Recreate table `annuities` inside the configured database
+3. Insert rows (numeric columns typed INT/DECIMAL automatically)
+4. Also save JSON + CSV backups in `output/`
+
+To use MySQL instead set `DB_TYPE=mysql` and the matching `MYSQL_*` vars.
+
+### Legacy Scraping Only
+
+You can still run the standalone scraper:
 
 ```bash
 python paginated_selenium_scraper.py
 ```
-
-This will:
-1. Prompt for username/password securely
-2. Login to the AnnuityRateWatch website
-3. Scrape all pages (1-36) with ~1,793 total records
-4. Save results to both `output/annuity_data_[timestamp].json` and `output/annuity_data_[timestamp].csv`
-5. Generate debug files if issues occur
+... and call the DB helpers manually if desired.
 
 ### Programmatic Usage
 
@@ -59,6 +107,66 @@ data = scraper.run()
 scraper.save_to_json(data, "my_data.json")
 scraper.save_to_csv(data, "my_data.csv")
 ```
+
+## Database Persistence Helpers
+
+### MySQL
+
+```python
+from db_utils import save_annuity_data_to_mysql
+save_annuity_data_to_mysql(data, {
+    "host": "localhost",
+    "user": "root",
+    "password": "password",
+    "database": "annuity_data"
+})
+```
+
+### Microsoft SQL Server
+
+```python
+from mssql_utils import save_annuity_data_to_mssql
+save_annuity_data_to_mssql(data, {
+    "host": "localhost",
+    "port": 1433,
+    "user": "sa",
+    "password": "TestPass123!",
+    "database": "annuity_data"
+})
+```
+
+Both helpers:
+* Create the database/table if missing.
+* Infer numeric column types (INT or DECIMAL) automatically.
+* Accept `recreate_table=True` to drop/rebuild the table each run (default in `scrape_and_load.py`).
+
+## Docker Quick-Start (SQL Server example)
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "TestPass123!"
+    ports:
+      - "1433:1433"
+  scraper:
+    build: .
+    environment:
+      DB_TYPE: mssql
+      ARW_USERNAME: ${ARW_USERNAME}
+      ARW_PASSWORD: ${ARW_PASSWORD}
+      MSSQL_USER: sa
+      MSSQL_PASSWORD: TestPass123!
+    depends_on:
+      sqlserver:
+        condition: service_started
+```
+
+Then: `docker compose up --build`.
 
 ## Data Structure
 

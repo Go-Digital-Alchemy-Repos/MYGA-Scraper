@@ -1,0 +1,54 @@
+MYGA Scraper – Super-Quick Setup (SQL Server only)
+
+1. Clone the repo and enter it
+       git clone https://github.com/<your-org-or-user>/MYGA.git
+       cd MYGA
+
+2. (Optional) create a virtual environment (keeps dependencies isolated to this project)
+       # macOS / Linux
+       python3 -m venv .venv
+       source .venv/bin/activate
+
+       # Windows PowerShell
+       py -m venv .venv
+       .venv\Scripts\Activate.ps1
+
+       # Why use a venv?
+       # It prevents these packages from polluting your system-wide Python and
+       # avoids version clashes with other projects.
+       # You can delete the folder to start fresh at any time.
+
+3. Install Python dependencies
+       pip install -r requirements.txt
+
+4. Make sure Microsoft ODBC Driver 18 for SQL Server is installed (skip if you already use SQLCMD/SSMS)
+
+5. Export environment variables (adjust values for your DB & login)
+       # macOS / Linux (bash/zsh)
+       export ARW_USERNAME="your_arw_user"
+       export ARW_PASSWORD="your_arw_pass"
+       export DB_TYPE=mssql
+       export MSSQL_HOST=localhost
+       export MSSQL_PORT=1433
+       export MSSQL_USER=sa
+       export MSSQL_PASSWORD=TestPass123!
+       export MSSQL_DATABASE=annuity_data
+
+       # Windows PowerShell
+       $Env:ARW_USERNAME="your_arw_user"
+       $Env:ARW_PASSWORD="your_arw_pass"
+       $Env:DB_TYPE="mssql"
+       $Env:MSSQL_HOST="localhost"
+       $Env:MSSQL_PORT="1433"
+       $Env:MSSQL_USER="sa"
+       $Env:MSSQL_PASSWORD="TestPass123!"
+       $Env:MSSQL_DATABASE="annuity_data"
+
+   Tip: put the above in a .env file; python-dotenv (already installed) will load it automatically.
+
+6. Run the scraper + loader
+       python scrape_and_load.py
+
+The script logs in, scrapes all 36 pages (~5–10 min), inserts rows into SQL Server, and saves JSON/CSV backups in the output/ directory.
+
+Done. Happy scraping!  

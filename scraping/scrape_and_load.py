@@ -64,6 +64,12 @@ def main():
         return
 
     print(f"✅ Scraped {len(data)} rows, saving to {DB_TYPE.upper()}…")
+
+    # Save JSON and CSV backups (overwrite same filenames on each run)
+    os.makedirs("output", exist_ok=True)
+    scraper.save_to_json(data, "annuity_data.json")
+    scraper.save_to_csv(data, "annuity_data.csv")
+
     save_fn(data, db_config, table_name="annuities", recreate_table=True)
 
     # 5. Optional: dump a preview to stdout

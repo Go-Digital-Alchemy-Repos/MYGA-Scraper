@@ -11,12 +11,18 @@ MYGA Scraper – Super-Quick Setup (SQL Server only)
 
        # Windows PowerShell
        py -m venv .venv
-       .venv\Scripts\Activate.ps1
+
+       Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+       . .\.venv\Scripts\Activate.ps1
 
        # Why use a venv?
        # It prevents these packages from polluting your system-wide Python and
        # avoids version clashes with other projects.
        # You can delete the folder to start fresh at any time.
+
+       if python is not installed
+       WINDOWS: https://www.python.org/downloads/windows/
+       MAC: https://www.python.org/downloads/macos/
 
 3. Install Python dependencies
        pip install -r requirements.txt

@@ -49,6 +49,6 @@ MYGA Scraper – Super-Quick Setup (SQL Server only)
 6. Run the scraper + loader
        python scrape_and_load.py
 
-The script logs in, scrapes all 36 pages (~5–10 min), inserts rows into SQL Server, and saves JSON/CSV backups in the output/ directory.
+The script logs in, scrapes all 36 ish pages (~5–10 min), inserts rows into SQL Server, and saves JSON/CSV backups in the output/ directory.
 
 Done. Happy scraping!  

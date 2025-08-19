@@ -4,7 +4,7 @@ MYGA Scraper – Super-Quick Setup (SQL Server only)
        git clone https://github.com/<your-org-or-user>/MYGA.git
        cd MYGA
 
-2. (Optional) create a virtual environment (keeps dependencies isolated to this project)
+2. Create a virtual environment (keeps dependencies isolated to this project)
        # macOS / Linux
        python3 -m venv .venv
        source .venv/bin/activate
@@ -12,8 +12,7 @@ MYGA Scraper – Super-Quick Setup (SQL Server only)
        # Windows PowerShell
        py -m venv .venv
 
-       Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-       . .\.venv\Scripts\Activate.ps1
+       Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned . .\.venv\Scripts\Activate.ps1
 
        # Why use a venv?
        # It prevents these packages from polluting your system-wide Python and
@@ -52,9 +51,19 @@ MYGA Scraper – Super-Quick Setup (SQL Server only)
 
    Tip: put the above in a .env file; python-dotenv (already installed) will load it automatically.
 
-6. Run the scraper + loader
-       python scrape_and_load.py
+6. Run the scraper | RUN COMMANDS
+       # macOS / Linux
 
-The script logs in, scrapes all 36 ish pages (~5–10 min), inserts rows into SQL Server, and saves JSON/CSV backups in the output/ directory.
+       First time will need to make the file executable
+       chmod +x run_scraper.sh
+
+       ./run_scraper.sh            # save JSON/CSV only
+       ./run_scraper.sh load       # save + load into SQL Server
+
+       # Windows PowerShell
+       .\scrape-WINDOWS.ps1        # save JSON/CSV only
+       .\scrape-WINDOWS.ps1 load   # save + load into SQL Server
+
+The helper scripts auto-activate the virtual environment (if present) and execute the correct Python module.
 
 Done. Happy scraping!  

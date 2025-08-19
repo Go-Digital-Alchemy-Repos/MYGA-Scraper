@@ -29,7 +29,7 @@ MYGA Scraper – Super-Quick Setup (SQL Server only)
 
 4. Make sure Microsoft ODBC Driver 18 for SQL Server is installed (skip if you already use SQLCMD/SSMS)
 
-5. Export environment variables (adjust values for your DB & login)
+5. LOOK FOR THE .env file in the project. Export environment variables (adjust values for your DB & login)
        # macOS / Linux (bash/zsh)
        export ARW_USERNAME="your_arw_user"
        export ARW_PASSWORD="your_arw_pass"
